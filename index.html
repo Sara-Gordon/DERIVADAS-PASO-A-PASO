@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Derivada por Primer Principio</title>
+  <script src="https://cdn.jsdelivr.net/npm/mathjs@12.3.0/lib/browser/math.min.js"></script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #fff0f5;
+      padding: 2rem;
+      color: #333;
+    }
+    h1 {
+      color: #d63384;
+      text-align: center;
+    }
+    input, button {
+      padding: 0.5rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin: 0.5rem;
+    }
+    #resultado {
+      background-color: #ffe6f0;
+      padding: 1rem;
+      border-radius: 10px;
+      margin-top: 1rem;
+      line-height: 1.6;
+    }
+    .fraccion {
+      display: inline-block;
+      text-align: center;
+    }
+    .fraccion .numerador {
+      border-bottom: 1px solid #000;
+    }
+    .paso {
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>⭐ Derivada por Primer Principio ⭐</h1>
+  <div style="text-align: center">
+    <input type="text" id="funcion" placeholder="Escribe una función, ej: x^2" />
+    <button onclick="resolver()">➡ Calcular Derivada</button>
+  </div>
+  <div id="resultado"></div>
+  <div id="grafica" style="margin-top: 2rem"></div>
+
+  <script>
+    function derivadaPasoAPaso(fxStr) {
+      const scope = { x: 0 };
+      try {
+        // Paso 1
+        let pasos = `<div class='paso'><strong>Paso 1:</strong> Escribimos la función original: <strong>f(x) = ${fxStr}</strong></div>`;
+
+        // Paso 2
+        pasos += `<div class='paso'><strong>Paso 2:</strong> Aplicamos la fórmula del primer principio de la derivada:</div>`;
+        pasos += `<div class='paso' style="font-size: 1.2rem;">
+          f'(x) = <span class="fraccion">
+            <span class="numerador">f(x + h) - f(x)</span>
+            <span class="denominador">h</span>
+          </span>
+        </div>`;
+
+        // Paso 3
+        const fx = math.parse(fxStr);
+        const fxMasH = fx.transform(function (node) {
+          if (node.isSymbolNode && node.name === 'x') {
+            return math.parse('(x + h)');
+          } else {
+            return node;
+          }
+        });
+        pasos += `<div class='paso'><strong>Paso 3:</strong> Sustituimos en la fórmula:</div>`;
+        pasos += `<div class='paso'>
+          f(x + h) = ${fxMasH.toString()}, f(x) = ${fxStr}
+        </div>`;
+
+        // Paso 4
+        const fxh = math.simplify(fxMasH);
+        const numerador = math.simplify(`${fxh.toString()} - (${fxStr})`);
+        pasos += `<div class='paso'><strong>Paso 4:</strong> Reemplazamos en el numerador:</div>
+        <div class='paso'>Numerador = ${numerador.toString()}</div>`;
+
+        // Paso 5
+        pasos += `<div class='paso'><strong>Paso 5:</strong> Dividimos entre h:</div>`;
+        const fraccion = math.simplify(`(${numerador.toString()}) / h`);
+        pasos += `<div class='paso'>
+          <span class="fraccion">
+            <span class="numerador">${numerador.toString()}</span>
+            <span class="denominador">h</span>
+          </span> = ${fraccion.toString()}
+        </div>`;
+
+        // Paso 6
+        pasos += `<div class='paso'><strong>Paso 6:</strong> Simplificamos la expresión:</div>`;
+        const derivada = math.simplify(`limit((${numerador.toString()})/h, h, 0)`);
+        pasos += `<div class='paso'>Límite cuando h -> 0: ${derivada.toString()}</div>`;
+
+        // Paso 7
+        pasos += `<div class='paso'><strong>Paso 7:</strong> Derivada obtenida: <strong>f'(x) = ${derivada.toString()}</strong></div>`;
+
+        return { pasos, fx: fxStr, f: math.compile(fxStr), df: math.compile(derivada.toString()) };
+      } catch (e) {
+        return { error: "⚠️ Error al procesar la función. Asegúrate de escribirla correctamente." };
+      }
+    }
+
+    function resolver() {
+      const fx = document.getElementById("funcion").value;
+      const res = derivadaPasoAPaso(fx);
+      const div = document.getElementById("resultado");
+      const g = document.getElementById("grafica");
+      if (res.error) {
+        div.innerHTML = `<div style='color: red;'>${res.error}</div>`;
+        g.innerHTML = "";
+      } else {
+        div.innerHTML = res.pasos;
+
+        // Gráfica
+        const x_vals = math.range(-10, 10, 0.1).toArray();
+        const y_vals = x_vals.map(x => res.f.evaluate({ x }));
+        const y_deriv = x_vals.map(x => res.df.evaluate({ x }));
+
+        Plotly.newPlot("grafica", [
+          {
+            x: x_vals,
+            y: y_vals,
+            mode: "lines",
+            name: "f(x)",
+            line: { color: "deeppink" }
+          },
+          {
+            x: x_vals,
+            y: y_deriv,
+            mode: "lines",
+            name: "f'(x)",
+            line: { color: "lightblue", dash: "dash" }
+          }
+        ], {
+          title: "Función y su derivada",
+          xaxis: { title: "x" },
+          yaxis: { title: "y" },
+          grid: { visible: true },
+        });
+      }
+    }
+  </script>
+</body>
+</html>
