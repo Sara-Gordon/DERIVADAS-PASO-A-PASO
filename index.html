@@ -3,135 +3,127 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Derivada Paso a Paso</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
-  <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+  <title>Derivada por Primer Principio</title>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #fff0f5;
-      color: #333;
-      margin: 40px;
+      margin: 30px;
+      background-color: #fff0f5;
+      color: #4b004b;
     }
-    h1 {
-      color: #e75480;
-      text-align: center;
+    h1, h2 {
+      color: #b300b3;
     }
     input, button {
-      padding: 10px;
       font-size: 16px;
+      padding: 10px;
       margin-top: 10px;
-      width: 100%;
-      border: 1px solid #e75480;
+      border: 2px solid #b300b3;
       border-radius: 8px;
     }
-    button {
-      background-color: #e75480;
-      color: white;
-      cursor: pointer;
-    }
-    .step {
+    .contenedor {
+      background-color: #ffe6f0;
+      padding: 20px;
+      border-radius: 10px;
       margin-top: 20px;
-      padding: 15px;
-      background: white;
-      border-left: 5px solid #e75480;
-      border-radius: 8px;
+      box-shadow: 0px 0px 10px #d147a3;
+    }
+    .paso {
+      margin-bottom: 15px;
     }
     #grafica {
-      margin-top: 30px;
+      margin-top: 40px;
     }
   </style>
 </head>
 <body>
-  <h1>Derivada Paso a Paso (Primer Principio)</h1>
-  <input type="text" id="funcion" placeholder="Escribe la función, por ejemplo: x^2">
-  <button onclick="calcularDerivada()">Calcular Derivada</button>
-
-  <div id="resultado"></div>
+  <h1>Calculadora de Derivadas - Método del Primer Principio</h1>
+  <label for="funcion">Escribe la función f(x):</label><br>
+  <input type="text" id="funcion" value="x^2" />
+  <div class="contenedor" id="resultado"></div>
   <div id="grafica"></div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.5.0/math.min.js"></script>
   <script>
-    function calcularDerivada() {
-      const fxInput = document.getElementById("funcion").value;
-      const resultadoDiv = document.getElementById("resultado");
-      resultadoDiv.innerHTML = "";
-      
-      let f;
-      try {
-        f = math.parse(fxInput).compile();
-      } catch (err) {
-        resultadoDiv.innerHTML = '<div class="step" style="color:red;">⚠️ Error al procesar la función. Asegúrate de escribirla correctamente.</div>';
-        return;
-      }
+    function mostrarProceso(fx) {
+      let contenido = document.getElementById("resultado");
+      let f = math.parse(fx);
+      let expr = f.toString();
 
-      // Paso 1
-      const paso1 = `<div class='step'><strong>PASO 1:</strong> Escribir la fórmula del primer principio de la derivada:<br><br>
-      <span style="font-size: 20px;">
-        f'(x) = \(\lim_{h \to 0} \frac{f(x+h) - f(x)}{h}\)
-      </span>
-      </div>`;
-
-      // Paso 2
-      const paso2 = `<div class='step'><strong>PASO 2:</strong> Escribir la función dada:<br><br>
-        f(x) = ${fxInput}
-      </div>`;
-
-      // Paso 3
-      const paso3 = `<div class='step'><strong>PASO 3:</strong> Sustituir f(x+h) y f(x) en la fórmula:<br><br>
-        \(\frac{${fxInput.replaceAll("x", "(x+h)")} - (${fxInput})}{h}\)
-      </div>`;
-
-      // Paso 4
-      const paso4 = `<div class='step'><strong>PASO 4:</strong> Simplificar la expresión obtenida.<br><br>
-        (Este paso depende del tipo de función. Se mostrará paso a paso en el siguiente desarrollo)
-      </div>`;
-
-      resultadoDiv.innerHTML += paso1 + paso2 + paso3 + paso4;
-
-      // Graficar f(x) y f(x+h)
-      const xValues = [];
-      const yValues = [];
-      const y2Values = [];
-      const h = 1;
-      for (let x = -10; x <= 10; x += 0.2) {
-        try {
-          const scope = {x};
-          const scope2 = {x: x + h};
-          xValues.push(x);
-          yValues.push(f.evaluate(scope));
-          y2Values.push(f.evaluate(scope2));
-        } catch (e) {
-          yValues.push(null);
-          y2Values.push(null);
-        }
-      }
-      Plotly.newPlot("grafica", [
-        {
-          x: xValues,
-          y: yValues,
-          mode: 'lines',
-          name: 'f(x)',
-          line: {color: '#e75480'}
-        },
-        {
-          x: xValues,
-          y: y2Values,
-          mode: 'lines',
-          name: 'f(x+h)',
-          line: {color: '#ffb6c1', dash: 'dot'}
-        }
-      ], {
-        margin: {t: 0},
-        title: 'Gráfica de f(x) y f(x+h)',
-        xaxis: {title: 'x'},
-        yaxis: {title: 'f(x)'},
-        plot_bgcolor: '#fff0f5',
-        paper_bgcolor: '#fff0f5',
-        showlegend: true,
-        grid: {rows: 1, columns: 1}
-      });
+      let pasos = `
+        <h2>Proceso paso a paso</h2>
+        <div class="paso"><strong>Paso 1:</strong> Se parte de la fórmula del primer principio de derivación:<br>
+          $$f'(x) = \lim_{h \to 0} \frac{f(x+h) - f(x)}{h}$$
+        </div>
+        <div class="paso"><strong>Paso 2:</strong> Se define la función: \( f(x) = ${fx} \)</div>
+        <div class="paso"><strong>Paso 3:</strong> Se calcula \( f(x+h) \):<br>
+          \( f(x+h) = ${fx.replaceAll("x", "(x+h)")} \)
+        </div>
+        <div class="paso"><strong>Paso 4:</strong> Sustituimos en la fórmula:<br>
+          $$f'(x) = \lim_{h \to 0} \frac{${fx.replaceAll("x", "(x+h)")} - (${fx})}{h}$$
+        </div>
+        <div class="paso"><strong>Paso 5:</strong> Se desarrolla la expresión del numerador.</div>
+        <div class="paso"><strong>Paso 6:</strong> Se simplifica el numerador y se divide para \( h \).</div>
+        <div class="paso"><strong>Paso 7:</strong> Se aplica el límite cuando \( h \to 0 \).</div>
+        <div class="paso"><strong>Paso 8:</strong> Resultado final: \( f'(x) = ${math.derivative(fx, 'x').toString()} \)</div>
+      `;
+      contenido.innerHTML = pasos;
+      MathJax.typeset();
     }
+
+    function graficarFuncion(fx) {
+      let f = math.compile(fx);
+      let fDerivada = math.derivative(fx, 'x').compile();
+
+      let x_vals = math.range(-10, 10, 0.1).toArray();
+      let y_vals = x_vals.map(x => f.evaluate({x}));
+      let y_deriv = x_vals.map(x => fDerivada.evaluate({x}));
+
+      let trace1 = {
+        x: x_vals,
+        y: y_vals,
+        mode: 'lines',
+        name: 'f(x)',
+        line: { color: '#ff66cc' }
+      };
+
+      let trace2 = {
+        x: x_vals,
+        y: y_deriv,
+        mode: 'lines',
+        name: "f'(x)",
+        line: { color: '#99004d' }
+      };
+
+      let layout = {
+        title: 'Gráfica de f(x) y su derivada',
+        xaxis: { title: 'x', gridcolor: '#fcd6e0' },
+        yaxis: { title: 'y', gridcolor: '#fcd6e0' },
+        plot_bgcolor: '#fff0f5',
+        paper_bgcolor: '#fff0f5'
+      };
+
+      Plotly.newPlot('grafica', [trace1, trace2], layout);
+    }
+
+    function actualizar() {
+      const fx = document.getElementById("funcion").value;
+      try {
+        mostrarProceso(fx);
+        graficarFuncion(fx);
+      } catch (error) {
+        document.getElementById("resultado").innerHTML = "<span style='color:red;'>⚠️ Error al procesar la función. Asegúrate de escribirla correctamente.</span>";
+        document.getElementById("grafica").innerHTML = "";
+      }
+    }
+
+    actualizar();
+    document.getElementById("funcion").addEventListener("input", actualizar);
   </script>
 </body>
 </html>
+
 
